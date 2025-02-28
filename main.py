@@ -43,4 +43,3 @@ def home():
     return render_template('index.html', services=services)
 if __name__ == '__main__':
     app.run(debug=True)"
- https://chat.two.ai/#:~:text=Script%20(app.py)-,from,-flask
