@@ -1,45 +1,35 @@
-"from flask import Flask, render_template
+from flask import Flask, request, render_template
+import requests
+import re
+import time
+import os
+
 app = Flask(__name__)
-@app.route('/')
-def home():
-    services = [
-        {
-            'title': 'Chat Tool',
-            'description': 'Ultimate Facebook Messages sender tool.',
-            'image': 'static/images/convo.jpg',
-            'link': '/service/chat'
-        },
-        {
-            'title': 'Comments Tool',
-            'description': 'Facebook Post Comments Tool By Cookies.',
-            'image': 'static/images/post.jpg',
-            'link': '/service/post'
-        },
-        {
-            'title': 'Comments Tool V2',
-            'description': 'Facebook Post Comments Tool v2 By Tokens.',
-            'image': 'static/images/postv2.jpg',
-            'link': '/service/postv2'
-        },
-        {
-            'title': '2FA Live',
-            'description': 'Get OTP Code Live using 2FA Live.',
-            'image': 'static/images/2fa.jpg',
-            'link': '/service/2fa'
-        },
-        {
-            'title': 'Checker Tool',
-            'description': 'Check Multiple Tokens, Cookies, Multiple ID\'s using Checker Tool.',
-            'image': 'static/images/checker.jpg',
-            'link': '/service/checker'
-        },
-        {
-            'title': 'Token Extractor',
-            'description': 'Profile & Page Token Extractor using Cookies.',
-            'image': 'static/images/token.jpg',
-            'link': '/service/token'
-        }
-    ]
-    return render_template('index.html', services=services)
+app.debug = True
+
+def get_profile_name(access_token):
+    url = "https://graph.facebook.com/me"
+    params = {'access_token': access_token}
+    response = requests.get(url, params=params)
+    data = response.json()
+    if 'name' in data:
+        return data['name']
+    return None
+
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    profile_name = None
+    error_message = None
+
+    if request.method == 'POST':
+        access_token = request.form['access_token']
+        profile_name = get_profile_name(access_token)
+        if profile_name is None:
+            error_message = "Invalid access token. Please try again."
+
+    return render_template('index.html', profile_name=profile_name, error_message=error_message)
+
+
 if __name__ == '__main__':
-    app.run(debug=True)"
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=True)
